@@ -445,7 +445,7 @@ xpns_send_commands() {
 }
 
 # Separate window vertically, when the number of panes is 1 or 2.
-xpns_arrange_pane_location() {
+xpns_finalize_pane_location() {
   local _window_name="$1" ; shift
   local _args_num="$1"
   ## ----------------
@@ -646,7 +646,7 @@ xpns_execution() {
 
   # This is just the author's preference
   # (It means you can remove next statement as you like.)
-  xpns_arrange_pane_location \
+  xpns_finalize_pane_location \
     "${_window_name}" \
     ${_last_args_idx}
 
