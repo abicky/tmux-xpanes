@@ -401,9 +401,9 @@ xpns_split_window() {
 
   while true ; do
     ${TMUX_XPANES_EXEC} select-pane -t "${_window_name}.${_pane_base_index}"
-    ${TMUX_XPANES_EXEC} split-window -t "${_window_name}" -h -l 2
+    ${TMUX_XPANES_EXEC} split-window -t "${_window_name}.${_pane_base_index}" -h -l 2
     for i in $( seq $(( _pane_height / 3 )) ) ; do
-      ${TMUX_XPANES_EXEC} split-window -t "${_window_name}" -v -l 2 -d
+      ${TMUX_XPANES_EXEC} split-window -v -l 2 -d
       _count=$(( _count + 1 ))
       if [[ ${_count} -eq ${_args_num} ]];then
         return 0
@@ -634,6 +634,12 @@ xpns_execution() {
     "${_last_args_idx}" \
     "${XP_OPT_ATTACH}"
 
+  # This is just the author's preference
+  # (It means you can remove next statement as you like.)
+  xpns_finalize_pane_location \
+    "${_window_name}" \
+    ${_last_args_idx}
+
   if [[ ${XP_OPT_LOG_STORE} -eq 1 ]]; then
     xpns_enable_logging \
       "${_window_name}" \
@@ -651,12 +657,6 @@ xpns_execution() {
     "${XP_REPSTR}" \
     "${XP_CMD_UTILITY}" \
     "${XP_ARGS[@]}"
-
-  # This is just the author's preference
-  # (It means you can remove next statement as you like.)
-  xpns_finalize_pane_location \
-    "${_window_name}" \
-    ${_last_args_idx}
 
   # Enable broadcasting
   if [[ ${XP_OPT_IS_SYNC} -eq 1 ]]; then
