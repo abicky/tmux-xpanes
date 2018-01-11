@@ -391,16 +391,24 @@ xpns_key2value() {
 #
 xpns_split_window() {
   local _window_name="$1" ; shift
+  local _pane_base_index="$1" ; shift
   local _args_num="$1"
-  for i in $(seq 0 "${_args_num}")
-  do
-    ${TMUX_XPANES_EXEC} split-window -t "${_window_name}" -h -d
-    ${TMUX_XPANES_EXEC} select-layout even-horizontal
-    # Restraining that size of pane's width becomes
-    # less than the minimum size which is defined by tmux.
-    if [[ "${i}" -ge 2 ]]; then
-      ${TMUX_XPANES_EXEC} select-layout -t "${_window_name}" tiled
-    fi
+  local _count=0
+
+  read -r _pane_height \
+    < <( ${TMUX_XPANES_EXEC} list-panes -F '#{pane_active} #{pane_width} #{pane_height}' \
+        | perl -anle '/^1/ and print $F[2]' )
+
+  while true ; do
+    ${TMUX_XPANES_EXEC} select-pane -t "${_window_name}.${_pane_base_index}"
+    ${TMUX_XPANES_EXEC} split-window -t "${_window_name}" -h -l 2
+    for i in $( seq $(( _pane_height / 3 )) ) ; do
+      ${TMUX_XPANES_EXEC} split-window -t "${_window_name}" -v -l 2 -d
+      _count=$(( _count + 1 ))
+      if [[ ${_count} -eq ${_args_num} ]];then
+        return 0
+      fi
+    done
   done
 }
 
@@ -486,7 +494,7 @@ xpns_prepare_window() {
   ${TMUX_XPANES_EXEC} select-pane -t "${_window_name}.${_pane_base_index}"
 
   # split window into multiple panes
-  xpns_split_window "${_window_name}" "${_pane_num}"
+  xpns_split_window "${_window_name}" "${_pane_base_index}" "${_pane_num}"
 
   ### If the first pane is still remaining,
   ### panes cannot be organized well.
